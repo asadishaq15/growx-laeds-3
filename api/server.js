@@ -40,6 +40,7 @@ async function axiosWithTimeout(url, opts = {}, timeoutMs = 8000) {
 // ------------ SSDI CPA CS (GrowxSsdiCpaCsForm) ping and post endpoints -------------
 const TRACKDRIVE_NUMBER_18 = "+18777991582";
 const TRAFFIC_SOURCE_ID_18 = "1000";
+const CENTER_CODE_18 = "LISA136";
 
 // GET /api/ping18 — proxies check_for_available_buyers ping (SSDI CPA CS)
 app.get("/api/ping18", async (req, res) => {
@@ -91,6 +92,7 @@ app.get("/api/ping18", async (req, res) => {
     if (trusted_form_cert_url) {
       apiUrl += `&trusted_form_cert_url=${encodeURIComponent(trusted_form_cert_url)}`;
     }
+    apiUrl += `&center_code=${encodeURIComponent(CENTER_CODE_18)}`;
 
     console.log("Ping18 upstream URL:", apiUrl);
     const upstream = await axiosWithTimeout(apiUrl, { method: "GET" }, 8000);
@@ -192,6 +194,7 @@ app.post("/api/post18", async (req, res) => {
       email: String(body.email).trim(),
       trackdrive_number: TRACKDRIVE_NUMBER_18,
       traffic_source_id: TRAFFIC_SOURCE_ID_18,
+      center_code: CENTER_CODE_18,
     };
 
     if (body.address2 && String(body.address2).trim()) {
