@@ -1,6 +1,6 @@
 # grow-x-leads-3
 
-Vite + React lead form project for Growx SSDI buyer-check forms.
+Vite + React lead form project for Growx SSDI buyer-check for
 
 ## Routes
 
