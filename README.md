@@ -1,6 +1,6 @@
 # grow-x-leads-3
 
-Vite + React lead form project for Growx SSDI buyer-check forms.
+Vite + React lead form project for Growx SSDI buyer-check and lead posting forms.
 
 ## Routes
 
@@ -8,6 +8,7 @@ Vite + React lead form project for Growx SSDI buyer-check forms.
 - `/ssdi-cpa-cs` — SSDI CPA CS form
 - `/ssdi-cpa-tj` — SSDI CPA TJ form (`+18778581849`)
 - `/ssdi-cpa-ld` — SSDI CPA LD form (`+18776431423`)
+- `/ticket-to-work` — Ticket to Work form (lead_token `20b38f6b063e46ed880a73ddf388f963`)
 
 ## Local development
 
@@ -20,6 +21,7 @@ npm run dev
 
 - API: `http://localhost:5001` (`/api/ping18`–`post18`, `/api/ping19`–`post19`, `/api/ping20`–`post20`)
 - App: Vite default (`http://localhost:5173`), with `/api` proxied to port 5001
+- Ticket to Work posts directly to Growx `/api/v1/leads` (no local API proxy)
 
 ## Deploy
 
