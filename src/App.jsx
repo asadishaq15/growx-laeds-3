@@ -5,6 +5,7 @@ import GrowxSsdiCpaCsForm from './Components/GrowxSsdiCpaCsForm';
 import GrowxSsdiCpaTjForm from './Components/GrowxSsdiCpaTjForm';
 import GrowxSsdiCpaLdForm from './Components/GrowxSsdiCpaLdForm';
 import GrowxTicketToWorkForm from './Components/GrowxTicketToWorkForm';
+import GrowxSsdiCpaPy2NewForm from './Components/GrowxSsdiCpaPy2NewForm';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/ssdi-cpa-tj" element={<GrowxSsdiCpaTjForm />} />
         <Route path="/ssdi-cpa-ld" element={<GrowxSsdiCpaLdForm />} />
         <Route path="/ticket-to-work" element={<GrowxTicketToWorkForm />} />
+        <Route path="/ssdi-cpa-py-2-new" element={<GrowxSsdiCpaPy2NewForm />} />
       </Routes>
     </Router>
   );
