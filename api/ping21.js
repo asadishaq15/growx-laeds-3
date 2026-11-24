@@ -15,6 +15,7 @@ export default async function handler(req, res) {
       state,
       email,
       trusted_form_cert_url,
+      age,
     } = req.query;
 
     const td = trackdrive_number || process.env.TRACKDRIVE_NUMBER_21 || "+18449621536";
@@ -54,6 +55,7 @@ export default async function handler(req, res) {
     if (trusted_form_cert_url) {
       apiUrl += `&trusted_form_cert_url=${encodeURIComponent(trusted_form_cert_url)}`;
     }
+    if (age) apiUrl += `&age=${encodeURIComponent(age)}`;
 
     const response = await fetch(apiUrl);
     const data = await response.json();

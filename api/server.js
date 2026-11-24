@@ -655,6 +655,7 @@ app.get("/api/ping21", async (req, res) => {
       state,
       email,
       trusted_form_cert_url,
+      age,
     } = req.query;
 
     if (!caller_id || !/^\+1\d{10}$/.test(String(caller_id))) {
@@ -682,6 +683,7 @@ app.get("/api/ping21", async (req, res) => {
     if (trusted_form_cert_url) {
       apiUrl += `&trusted_form_cert_url=${encodeURIComponent(trusted_form_cert_url)}`;
     }
+    if (age) apiUrl += `&age=${encodeURIComponent(age)}`;
 
     console.log("Ping21 upstream URL:", apiUrl);
     const upstream = await axiosWithTimeout(apiUrl, { method: "GET" }, 8000);
@@ -791,6 +793,10 @@ app.post("/api/post21", async (req, res) => {
 
     if (body.trusted_form_cert_url) {
       payload.trusted_form_cert_url = String(body.trusted_form_cert_url).trim();
+    }
+
+    if (body.age && String(body.age).trim()) {
+      payload.age = String(body.age).trim();
     }
 
     const apiUrl =

@@ -66,6 +66,10 @@ export default async function handler(req, res) {
       payload.trusted_form_cert_url = String(body.trusted_form_cert_url).trim();
     }
 
+    if (body.age && String(body.age).trim()) {
+      payload.age = String(body.age).trim();
+    }
+
     const apiUrl =
       "https://growxmarketingservices.trackdrive.com/api/v1/inbound_webhooks/post/check_for_available_buyers";
 

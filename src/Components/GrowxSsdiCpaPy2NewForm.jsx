@@ -67,6 +67,7 @@ const INITIAL_FORM = {
   city: "",
   state: "",
   zip: "",
+  age: "",
   trusted_form_cert_url: "",
 };
 
@@ -119,6 +120,13 @@ export default function GrowxSsdiCpaPy2NewForm() {
     setSuccess(false);
   };
 
+  const handleAgeChange = (e) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 3);
+    setFormData((prev) => ({ ...prev, age: value }));
+    setError(null);
+    setSuccess(false);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -142,6 +150,7 @@ export default function GrowxSsdiCpaPy2NewForm() {
       city: formData.city.trim(),
       state: formData.state.trim(),
       zip: formData.zip.trim(),
+      age: formData.age.trim(),
       trusted_form_cert_url: formData.trusted_form_cert_url.trim(),
     };
 
@@ -206,6 +215,10 @@ export default function GrowxSsdiCpaPy2NewForm() {
         pingParams.set("address2", payload.address2);
       }
 
+      if (payload.age) {
+        pingParams.set("age", payload.age);
+      }
+
       const pingResponse = await fetch(`/api/ping21?${pingParams.toString()}`);
       const pingData = await pingResponse.json();
 
@@ -235,6 +248,10 @@ export default function GrowxSsdiCpaPy2NewForm() {
 
       if (payload.address2) {
         postBody.address2 = payload.address2;
+      }
+
+      if (payload.age) {
+        postBody.age = payload.age;
       }
 
       const postResponse = await fetch("/api/post21", {
@@ -448,6 +465,20 @@ export default function GrowxSsdiCpaPy2NewForm() {
                 required
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Age</label>
+            <input
+              type="text"
+              name="age"
+              value={formData.age}
+              onChange={handleAgeChange}
+              className={inputClass}
+              placeholder="35"
+              inputMode="numeric"
+              maxLength={3}
+            />
           </div>
 
           <div>
