@@ -824,6 +824,152 @@ app.post("/api/post21", async (req, res) => {
   }
 });
 
+// ------------ Home Insurance LN (GrowxHomeInsuranceLnForm) ping and post endpoints -------------
+const TRACKDRIVE_NUMBER_22 = "+18445093147";
+const TRAFFIC_SOURCE_ID_22 = "1000";
+
+// GET /api/ping22 — proxies check_home_ins_buyers ping (Home Insurance LN)
+app.get("/api/ping22", async (req, res) => {
+  try {
+    if (!TRACKDRIVE_NUMBER_22 || !TRAFFIC_SOURCE_ID_22) {
+      console.error("Missing TRACKDRIVE_NUMBER_22 or TRAFFIC_SOURCE_ID_22");
+      return res.status(500).json({
+        success: false,
+        status: "error",
+        errors: ["Server misconfiguration"],
+      });
+    }
+
+    const { caller_id, email, city, state } = req.query;
+
+    if (!caller_id || !/^\+1\d{10}$/.test(String(caller_id))) {
+      return res.status(400).json({
+        success: false,
+        status: "error",
+        errors: ["Invalid or missing caller_id. Expected +1XXXXXXXXXX"],
+      });
+    }
+
+    let apiUrl =
+      "https://growxmarketingservices.trackdrive.com/api/v1/inbound_webhooks/ping/check_home_ins_buyers" +
+      `?trackdrive_number=${encodeURIComponent(TRACKDRIVE_NUMBER_22)}` +
+      `&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID_22)}` +
+      `&caller_id=${encodeURIComponent(caller_id)}`;
+
+    if (email) apiUrl += `&email=${encodeURIComponent(email)}`;
+    if (city) apiUrl += `&city=${encodeURIComponent(city)}`;
+    if (state) apiUrl += `&state=${encodeURIComponent(state)}`;
+
+    console.log("Ping22 upstream URL:", apiUrl);
+    const upstream = await axiosWithTimeout(apiUrl, { method: "GET" }, 8000);
+    return res.status(upstream.status).json(upstream.data);
+  } catch (err) {
+    console.error("Ping22 upstream error:", err.message || err);
+
+    if (axios.isCancel(err)) {
+      return res.status(504).json({
+        success: false,
+        status: "timeout",
+        errors: ["Upstream request timed out"],
+      });
+    }
+
+    if (err.response) {
+      let errors;
+      if (typeof err.response.data?.errors === "object" && !Array.isArray(err.response.data?.errors)) {
+        errors = Object.entries(err.response.data.errors).map(([key, messages]) =>
+          Array.isArray(messages) ? `${key}: ${messages.join(", ")}` : `${key}: ${messages}`
+        );
+      } else {
+        errors = err.response.data?.errors || [`Upstream status ${err.response.status}`];
+      }
+      return res.status(err.response.status || 502).json({
+        success: false,
+        status: "upstream_error",
+        errors,
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      status: "error",
+      errors: ["Server error: " + (err.message || "unknown")],
+    });
+  }
+});
+
+// POST /api/post22 — proxies check_home_ins_buyers post (Home Insurance LN)
+app.post("/api/post22", async (req, res) => {
+  if (!TRACKDRIVE_NUMBER_22 || !TRAFFIC_SOURCE_ID_22) {
+    console.error("Missing TRACKDRIVE_NUMBER_22 or TRAFFIC_SOURCE_ID_22");
+    return res.status(500).json({ success: false, status: "error", errors: ["Server misconfiguration"] });
+  }
+
+  try {
+    const body = req.body || {};
+
+    const required = ["ping_id", "caller_id", "email", "city", "state"];
+    const missing = required.filter(
+      (k) => body[k] === undefined || body[k] === null || String(body[k]).trim() === ""
+    );
+    if (missing.length) {
+      return res.status(400).json({
+        success: false,
+        status: "error",
+        errors: ["Missing required fields: " + missing.join(", ")],
+      });
+    }
+
+    const callerId = String(body.caller_id).trim();
+    if (!/^\+1\d{10}$/.test(callerId)) {
+      return res.status(400).json({
+        success: false,
+        status: "error",
+        errors: ["Invalid caller_id. Expected +1XXXXXXXXXX"],
+      });
+    }
+
+    const payload = {
+      ping_id: String(body.ping_id).trim(),
+      caller_id: callerId,
+      email: String(body.email).trim(),
+      city: String(body.city).trim(),
+      state: String(body.state).trim(),
+      trackdrive_number: TRACKDRIVE_NUMBER_22,
+      traffic_source_id: TRAFFIC_SOURCE_ID_22,
+    };
+
+    const apiUrl =
+      "https://growxmarketingservices.trackdrive.com/api/v1/inbound_webhooks/post/check_home_ins_buyers";
+
+    console.log("Post22 upstream URL:", apiUrl);
+    const upstream = await axiosWithTimeout(
+      apiUrl,
+      { method: "POST", headers: { "Content-Type": "application/json" }, data: JSON.stringify(payload) },
+      10000
+    );
+
+    return res.status(upstream.status).json(upstream.data);
+  } catch (err) {
+    console.error("Post22 upstream error:", err.message || err);
+    if (axios.isCancel(err)) {
+      return res.status(504).json({ success: false, status: "timeout", errors: ["Upstream request timed out"] });
+    }
+    if (err.response) {
+      let errors;
+      if (typeof err.response.data?.errors === "object" && !Array.isArray(err.response.data?.errors)) {
+        errors = Object.entries(err.response.data.errors).map(([key, messages]) =>
+          Array.isArray(messages) ? `${key}: ${messages.join(", ")}` : `${key}: ${messages}`
+        );
+      } else {
+        errors = err.response.data?.errors || [`Upstream status ${err.response.status}`];
+      }
+      return res.status(err.response.status || 502).json({ success: false, status: "upstream_error", errors });
+    }
+    return res.status(500).json({ success: false, status: "error", errors: ["Server error: " + (err.message || "unknown")] });
+  }
+});
+
 // ----- Serve built frontend in production -----
 const distPath = path.join(__dirname, "..", "dist");
 
