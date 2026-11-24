@@ -846,7 +846,20 @@ app.get("/api/ping22", async (req, res) => {
       });
     }
 
-    const { caller_id, email, city, state } = req.query;
+    const {
+      caller_id,
+      first_name,
+      last_name,
+      email,
+      city,
+      state,
+      zip,
+      dob,
+      gender,
+      age,
+      ip_address,
+      jornaya_leadid,
+    } = req.query;
 
     if (!caller_id || !/^\+1\d{10}$/.test(String(caller_id))) {
       return res.status(400).json({
@@ -862,9 +875,17 @@ app.get("/api/ping22", async (req, res) => {
       `&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID_22)}` +
       `&caller_id=${encodeURIComponent(caller_id)}`;
 
+    if (first_name) apiUrl += `&first_name=${encodeURIComponent(first_name)}`;
+    if (last_name) apiUrl += `&last_name=${encodeURIComponent(last_name)}`;
     if (email) apiUrl += `&email=${encodeURIComponent(email)}`;
     if (city) apiUrl += `&city=${encodeURIComponent(city)}`;
     if (state) apiUrl += `&state=${encodeURIComponent(state)}`;
+    if (zip) apiUrl += `&zip=${encodeURIComponent(zip)}`;
+    if (dob) apiUrl += `&dob=${encodeURIComponent(dob)}`;
+    if (gender) apiUrl += `&gender=${encodeURIComponent(gender)}`;
+    if (age) apiUrl += `&age=${encodeURIComponent(age)}`;
+    if (ip_address) apiUrl += `&ip_address=${encodeURIComponent(ip_address)}`;
+    if (jornaya_leadid) apiUrl += `&jornaya_leadid=${encodeURIComponent(jornaya_leadid)}`;
 
     console.log("Ping22 upstream URL:", apiUrl);
     const upstream = await axiosWithTimeout(apiUrl, { method: "GET" }, 8000);
@@ -914,7 +935,16 @@ app.post("/api/post22", async (req, res) => {
   try {
     const body = req.body || {};
 
-    const required = ["ping_id", "caller_id", "email", "city", "state"];
+    const required = [
+      "ping_id",
+      "caller_id",
+      "email",
+      "first_name",
+      "last_name",
+      "city",
+      "state",
+      "zip",
+    ];
     const missing = required.filter(
       (k) => body[k] === undefined || body[k] === null || String(body[k]).trim() === ""
     );
@@ -935,15 +965,34 @@ app.post("/api/post22", async (req, res) => {
       });
     }
 
+    const zip = String(body.zip).trim();
+    if (!/^\d{5}$/.test(zip)) {
+      return res.status(400).json({
+        success: false,
+        status: "error",
+        errors: ["Invalid zip. Expected 5-digit US ZIP code"],
+      });
+    }
+
     const payload = {
       ping_id: String(body.ping_id).trim(),
       caller_id: callerId,
+      first_name: String(body.first_name).trim(),
+      last_name: String(body.last_name).trim(),
       email: String(body.email).trim(),
       city: String(body.city).trim(),
       state: String(body.state).trim(),
+      zip,
       trackdrive_number: TRACKDRIVE_NUMBER_22,
       traffic_source_id: TRAFFIC_SOURCE_ID_22,
     };
+
+    const optional = ["dob", "gender", "age", "ip_address", "jornaya_leadid"];
+    for (const key of optional) {
+      if (body[key] !== undefined && body[key] !== null && String(body[key]).trim() !== "") {
+        payload[key] = String(body[key]).trim();
+      }
+    }
 
     const apiUrl =
       "https://growxmarketingservices.trackdrive.com/api/v1/inbound_webhooks/post/check_home_ins_buyers";

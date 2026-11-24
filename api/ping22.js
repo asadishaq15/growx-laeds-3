@@ -6,9 +6,17 @@ export default async function handler(req, res) {
       trackdrive_number,
       traffic_source_id,
       caller_id,
+      first_name,
+      last_name,
       email,
       city,
       state,
+      zip,
+      dob,
+      gender,
+      age,
+      ip_address,
+      jornaya_leadid,
     } = req.query;
 
     const td = trackdrive_number || process.env.TRACKDRIVE_NUMBER_22 || "+18445093147";
@@ -37,9 +45,17 @@ export default async function handler(req, res) {
       `&traffic_source_id=${encodeURIComponent(ts)}` +
       `&caller_id=${encodeURIComponent(normalizedCallerId)}`;
 
+    if (first_name) apiUrl += `&first_name=${encodeURIComponent(first_name)}`;
+    if (last_name) apiUrl += `&last_name=${encodeURIComponent(last_name)}`;
     if (email) apiUrl += `&email=${encodeURIComponent(email)}`;
     if (city) apiUrl += `&city=${encodeURIComponent(city)}`;
     if (state) apiUrl += `&state=${encodeURIComponent(state)}`;
+    if (zip) apiUrl += `&zip=${encodeURIComponent(zip)}`;
+    if (dob) apiUrl += `&dob=${encodeURIComponent(dob)}`;
+    if (gender) apiUrl += `&gender=${encodeURIComponent(gender)}`;
+    if (age) apiUrl += `&age=${encodeURIComponent(age)}`;
+    if (ip_address) apiUrl += `&ip_address=${encodeURIComponent(ip_address)}`;
+    if (jornaya_leadid) apiUrl += `&jornaya_leadid=${encodeURIComponent(jornaya_leadid)}`;
 
     const response = await fetch(apiUrl);
     const data = await response.json();

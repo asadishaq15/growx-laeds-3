@@ -4,7 +4,16 @@ export default async function handler(req, res) {
   try {
     const body = req.body || {};
 
-    const required = ["ping_id", "caller_id", "email", "city", "state"];
+    const required = [
+      "ping_id",
+      "caller_id",
+      "email",
+      "first_name",
+      "last_name",
+      "city",
+      "state",
+      "zip",
+    ];
     const missing = required.filter(
       (k) => body[k] === undefined || body[k] === null || String(body[k]).trim() === ""
     );
@@ -25,15 +34,34 @@ export default async function handler(req, res) {
       });
     }
 
+    const zip = String(body.zip).trim();
+    if (!/^\d{5}$/.test(zip)) {
+      return res.status(400).json({
+        success: false,
+        status: "error",
+        errors: ["Invalid zip. Expected 5-digit US ZIP code"],
+      });
+    }
+
     const payload = {
       ping_id: String(body.ping_id).trim(),
       caller_id: callerId,
+      first_name: String(body.first_name).trim(),
+      last_name: String(body.last_name).trim(),
       email: String(body.email).trim(),
       city: String(body.city).trim(),
       state: String(body.state).trim(),
+      zip,
       trackdrive_number: body.trackdrive_number || process.env.TRACKDRIVE_NUMBER_22 || "+18445093147",
       traffic_source_id: body.traffic_source_id || process.env.TRAFFIC_SOURCE_ID_22 || "1000",
     };
+
+    const optional = ["dob", "gender", "age", "ip_address", "jornaya_leadid"];
+    for (const key of optional) {
+      if (body[key] !== undefined && body[key] !== null && String(body[key]).trim() !== "") {
+        payload[key] = String(body[key]).trim();
+      }
+    }
 
     const apiUrl =
       "https://growxmarketingservices.trackdrive.com/api/v1/inbound_webhooks/post/check_home_ins_buyers";

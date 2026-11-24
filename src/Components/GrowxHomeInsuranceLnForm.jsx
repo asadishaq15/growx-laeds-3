@@ -57,12 +57,27 @@ const US_STATES = [
   { value: "WY", label: "Wyoming" },
 ];
 
+const GENDER_OPTIONS = [
+  { value: "F", label: "Female" },
+  { value: "M", label: "Male" },
+];
+
 const INITIAL_FORM = {
   caller_id: "",
+  first_name: "",
+  last_name: "",
   email: "",
   city: "",
   state: "",
+  zip: "",
+  dob: "",
+  gender: "",
+  age: "",
+  ip_address: "",
+  jornaya_leadid: "",
 };
+
+const OPTIONAL_FIELDS = ["dob", "gender", "age", "ip_address"];
 
 function extractPingId(data) {
   return (
@@ -87,6 +102,18 @@ function formatErrors(data, fallback) {
   return data?.message || data?.error || data?.status || fallback;
 }
 
+function appendOptionalFields(target, payload, isSearchParams = false) {
+  for (const key of OPTIONAL_FIELDS) {
+    const value = payload[key];
+    if (!value) continue;
+    if (isSearchParams) {
+      target.set(key, value);
+    } else {
+      target[key] = value;
+    }
+  }
+}
+
 export default function GrowxHomeInsuranceLnForm() {
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -106,6 +133,20 @@ export default function GrowxHomeInsuranceLnForm() {
     setSuccess(false);
   };
 
+  const handleZipChange = (e) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 5);
+    setFormData((prev) => ({ ...prev, zip: value }));
+    setError(null);
+    setSuccess(false);
+  };
+
+  const handleAgeChange = (e) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 3);
+    setFormData((prev) => ({ ...prev, age: value }));
+    setError(null);
+    setSuccess(false);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -121,13 +162,26 @@ export default function GrowxHomeInsuranceLnForm() {
 
     const payload = {
       caller_id: formData.caller_id.trim(),
+      first_name: formData.first_name.trim(),
+      last_name: formData.last_name.trim(),
       email: formData.email.trim(),
       city: formData.city.trim(),
       state: formData.state.trim(),
+      zip: formData.zip.trim(),
+      dob: formData.dob.trim(),
+      gender: formData.gender.trim(),
+      age: formData.age.trim(),
+      ip_address: formData.ip_address.trim(),
+      jornaya_leadid: formData.jornaya_leadid.trim(),
     };
 
     if (!isValidPhone(payload.caller_id)) {
       setError("Please enter a valid US phone number in format: +1XXXXXXXXXX.");
+      return;
+    }
+
+    if (!payload.first_name || !payload.last_name) {
+      setError("First name and last name are required.");
       return;
     }
 
@@ -146,6 +200,21 @@ export default function GrowxHomeInsuranceLnForm() {
       return;
     }
 
+    if (!/^\d{5}$/.test(payload.zip)) {
+      setError("Please enter a valid 5-digit ZIP code.");
+      return;
+    }
+
+    if (!payload.jornaya_leadid) {
+      setError("Jornaya Lead ID is required.");
+      return;
+    }
+
+    if (payload.dob && !/^\d{4}-\d{2}-\d{2}$/.test(payload.dob)) {
+      setError("Date of birth must be in YYYY-MM-DD format.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -153,10 +222,15 @@ export default function GrowxHomeInsuranceLnForm() {
         trackdrive_number: TRACKDRIVE_NUMBER,
         traffic_source_id: TRAFFIC_SOURCE_ID,
         caller_id: payload.caller_id,
+        first_name: payload.first_name,
+        last_name: payload.last_name,
         email: payload.email,
         city: payload.city,
         state: payload.state,
+        zip: payload.zip,
+        jornaya_leadid: payload.jornaya_leadid,
       });
+      appendOptionalFields(pingParams, payload, true);
 
       const pingResponse = await fetch(`/api/ping22?${pingParams.toString()}`);
       const pingData = await pingResponse.json();
@@ -175,10 +249,15 @@ export default function GrowxHomeInsuranceLnForm() {
         traffic_source_id: TRAFFIC_SOURCE_ID,
         caller_id: payload.caller_id,
         ping_id: pingId,
+        first_name: payload.first_name,
+        last_name: payload.last_name,
         email: payload.email,
         city: payload.city,
         state: payload.state,
+        zip: payload.zip,
+        jornaya_leadid: payload.jornaya_leadid,
       };
+      appendOptionalFields(postBody, payload, false);
 
       const postResponse = await fetch("/api/post22", {
         method: "POST",
@@ -250,6 +329,37 @@ export default function GrowxHomeInsuranceLnForm() {
         )}
 
         <form onSubmit={handleSubmit} className="px-8 py-8 space-y-6" autoComplete="off">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                First Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="first_name"
+                value={formData.first_name}
+                onChange={handleChange}
+                className={inputClass}
+                placeholder="John"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Last Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="last_name"
+                value={formData.last_name}
+                onChange={handleChange}
+                className={inputClass}
+                placeholder="Smith"
+                required
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">
               Caller Number <span className="text-red-500">*</span>
@@ -296,24 +406,112 @@ export default function GrowxHomeInsuranceLnForm() {
             />
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                State <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="state"
+                value={formData.state}
+                onChange={handleChange}
+                className={inputClass}
+                required
+              >
+                <option value="">Select state</option>
+                {US_STATES.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                ZIP <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="zip"
+                value={formData.zip}
+                onChange={handleZipChange}
+                maxLength={5}
+                className={inputClass}
+                placeholder="80301"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Date of Birth</label>
+              <input
+                type="text"
+                name="dob"
+                value={formData.dob}
+                onChange={handleChange}
+                className={inputClass}
+                placeholder="YYYY-MM-DD"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Age</label>
+              <input
+                type="text"
+                name="age"
+                value={formData.age}
+                onChange={handleAgeChange}
+                className={inputClass}
+                placeholder="35"
+                inputMode="numeric"
+                maxLength={3}
+              />
+            </div>
+          </div>
+
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              State <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Gender</label>
             <select
-              name="state"
-              value={formData.state}
+              name="gender"
+              value={formData.gender}
               onChange={handleChange}
               className={inputClass}
-              required
             >
-              <option value="">Select state</option>
-              {US_STATES.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
+              <option value="">Select gender</option>
+              {GENDER_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">IP Address</label>
+            <input
+              type="text"
+              name="ip_address"
+              value={formData.ip_address}
+              onChange={handleChange}
+              className={inputClass}
+              placeholder="103.131.212.217"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              Jornaya Lead ID <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="jornaya_leadid"
+              value={formData.jornaya_leadid}
+              onChange={handleChange}
+              className={inputClass}
+              placeholder="Jornaya Lead ID"
+              required
+            />
           </div>
 
           <div className="pt-2">
