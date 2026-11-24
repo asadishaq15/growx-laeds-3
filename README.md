@@ -11,6 +11,7 @@ Vite + React lead form project for Growx SSDI buyer-check and lead posting forms
 - `/ticket-to-work` — Ticket to Work form (lead_token `20b38f6b063e46ed880a73ddf388f963`)
 - `/ssdi-cpa-py-2-new` — SSDI CPA PY 2 New form (`+18449621536`)
 - `/home-insurance-ln` — Home Insurance LN form (`+18445093147`)
+- `/auto-ln` — Auto LN form (`+18446163653`)
 
 ## Local development
 
@@ -21,13 +22,13 @@ npm run api
 npm run dev
 ```
 
-- API: `http://localhost:5001` (`/api/ping18`–`post21`, `/api/ping22`–`post22`)
+- API: `http://localhost:5001` (`/api/ping18`–`post23`)
 - App: Vite default (`http://localhost:5173`), with `/api` proxied to port 5001
 - Ticket to Work posts directly to Growx `/api/v1/leads` (no local API proxy)
 
 ## Deploy
 
-Vercel uses `api/ping18.js`–`post22.js` as serverless functions.
+Vercel uses `api/ping18.js`–`post23.js` as serverless functions.
 
 Optional env overrides:
 
@@ -41,3 +42,5 @@ Optional env overrides:
 - `TRAFFIC_SOURCE_ID_21` (default `1000`)
 - `TRACKDRIVE_NUMBER_22` (default `+18445093147`)
 - `TRAFFIC_SOURCE_ID_22` (default `1000`)
+- `TRACKDRIVE_NUMBER_23` (default `+18446163653`)
+- `TRAFFIC_SOURCE_ID_23` (default `1000`)
