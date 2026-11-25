@@ -75,9 +75,8 @@ const INITIAL_FORM = {
   age: "",
   ip_address: "",
   jornaya_leadid: "",
+  optin_timestamp: "",
 };
-
-const OPTIONAL_FIELDS = ["dob", "gender", "age", "ip_address"];
 
 function extractPingId(data) {
   return (
@@ -100,18 +99,6 @@ function formatErrors(data, fallback) {
   }
 
   return data?.message || data?.error || data?.status || fallback;
-}
-
-function appendOptionalFields(target, payload, isSearchParams = false) {
-  for (const key of OPTIONAL_FIELDS) {
-    const value = payload[key];
-    if (!value) continue;
-    if (isSearchParams) {
-      target.set(key, value);
-    } else {
-      target[key] = value;
-    }
-  }
 }
 
 export default function GrowxHomeInsuranceLnForm() {
@@ -173,6 +160,7 @@ export default function GrowxHomeInsuranceLnForm() {
       age: formData.age.trim(),
       ip_address: formData.ip_address.trim(),
       jornaya_leadid: formData.jornaya_leadid.trim(),
+      optin_timestamp: formData.optin_timestamp.trim(),
     };
 
     if (!isValidPhone(payload.caller_id)) {
@@ -205,15 +193,54 @@ export default function GrowxHomeInsuranceLnForm() {
       return;
     }
 
+    if (!payload.dob) {
+      setError("Date of birth is required.");
+      return;
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(payload.dob)) {
+      setError("Date of birth must be in YYYY-MM-DD format.");
+      return;
+    }
+
+    if (!payload.age) {
+      setError("Age is required.");
+      return;
+    }
+
+    const ageNum = Number(payload.age);
+    if (Number.isNaN(ageNum) || ageNum < 1 || ageNum > 120) {
+      setError("Please enter a valid age.");
+      return;
+    }
+
+    if (!payload.gender) {
+      setError("Please select a gender.");
+      return;
+    }
+
+    if (!payload.ip_address) {
+      setError("IP address is required.");
+      return;
+    }
+
     if (!payload.jornaya_leadid) {
       setError("Jornaya Lead ID is required.");
       return;
     }
 
-    if (payload.dob && !/^\d{4}-\d{2}-\d{2}$/.test(payload.dob)) {
-      setError("Date of birth must be in YYYY-MM-DD format.");
+    if (!payload.optin_timestamp) {
+      setError("Optin Timestamp is required.");
       return;
     }
+
+    const optinDate = new Date(payload.optin_timestamp);
+    if (Number.isNaN(optinDate.getTime())) {
+      setError("Please select a valid Optin Timestamp.");
+      return;
+    }
+
+    const UTCISODate = optinDate.toISOString().replace(/\.\d{3}Z$/, "Z");
 
     setIsSubmitting(true);
 
@@ -228,9 +255,13 @@ export default function GrowxHomeInsuranceLnForm() {
         city: payload.city,
         state: payload.state,
         zip: payload.zip,
+        dob: payload.dob,
+        gender: payload.gender,
+        age: payload.age,
+        ip_address: payload.ip_address,
         jornaya_leadid: payload.jornaya_leadid,
+        UTCISODate,
       });
-      appendOptionalFields(pingParams, payload, true);
 
       const pingResponse = await fetch(`/api/ping22?${pingParams.toString()}`);
       const pingData = await pingResponse.json();
@@ -255,9 +286,13 @@ export default function GrowxHomeInsuranceLnForm() {
         city: payload.city,
         state: payload.state,
         zip: payload.zip,
+        dob: payload.dob,
+        gender: payload.gender,
+        age: payload.age,
+        ip_address: payload.ip_address,
         jornaya_leadid: payload.jornaya_leadid,
+        UTCISODate,
       };
-      appendOptionalFields(postBody, payload, false);
 
       const postResponse = await fetch("/api/post22", {
         method: "POST",
@@ -445,7 +480,9 @@ export default function GrowxHomeInsuranceLnForm() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Date of Birth</label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Date of Birth <span className="text-red-500">*</span>
+              </label>
               <input
                 type="text"
                 name="dob"
@@ -453,10 +490,13 @@ export default function GrowxHomeInsuranceLnForm() {
                 onChange={handleChange}
                 className={inputClass}
                 placeholder="YYYY-MM-DD"
+                required
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Age</label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Age <span className="text-red-500">*</span>
+              </label>
               <input
                 type="text"
                 name="age"
@@ -466,17 +506,21 @@ export default function GrowxHomeInsuranceLnForm() {
                 placeholder="35"
                 inputMode="numeric"
                 maxLength={3}
+                required
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Gender</label>
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              Gender <span className="text-red-500">*</span>
+            </label>
             <select
               name="gender"
               value={formData.gender}
               onChange={handleChange}
               className={inputClass}
+              required
             >
               <option value="">Select gender</option>
               {GENDER_OPTIONS.map((o) => (
@@ -488,7 +532,9 @@ export default function GrowxHomeInsuranceLnForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">IP Address</label>
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              IP Address <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
               name="ip_address"
@@ -496,6 +542,7 @@ export default function GrowxHomeInsuranceLnForm() {
               onChange={handleChange}
               className={inputClass}
               placeholder="103.131.212.217"
+              required
             />
           </div>
 
@@ -510,6 +557,20 @@ export default function GrowxHomeInsuranceLnForm() {
               onChange={handleChange}
               className={inputClass}
               placeholder="Jornaya Lead ID"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              Optin Timestamp <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="datetime-local"
+              name="optin_timestamp"
+              value={formData.optin_timestamp}
+              onChange={handleChange}
+              className={inputClass}
               required
             />
           </div>

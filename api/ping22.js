@@ -17,6 +17,7 @@ export default async function handler(req, res) {
       age,
       ip_address,
       jornaya_leadid,
+      UTCISODate,
     } = req.query;
 
     const td = trackdrive_number || process.env.TRACKDRIVE_NUMBER_22 || "+18445093147";
@@ -56,6 +57,7 @@ export default async function handler(req, res) {
     if (age) apiUrl += `&age=${encodeURIComponent(age)}`;
     if (ip_address) apiUrl += `&ip_address=${encodeURIComponent(ip_address)}`;
     if (jornaya_leadid) apiUrl += `&jornaya_leadid=${encodeURIComponent(jornaya_leadid)}`;
+    if (UTCISODate) apiUrl += `&UTCISODate=${encodeURIComponent(UTCISODate)}`;
 
     const response = await fetch(apiUrl);
     const data = await response.json();
