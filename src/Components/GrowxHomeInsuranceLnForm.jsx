@@ -240,7 +240,8 @@ export default function GrowxHomeInsuranceLnForm() {
       return;
     }
 
-    const UTCISODate = optinDate.toISOString().replace(/\.\d{3}Z$/, "Z");
+    const pad = (n) => String(n).padStart(2, "0");
+    const original_lead_submit_date = `${optinDate.getFullYear()}-${pad(optinDate.getMonth() + 1)}-${pad(optinDate.getDate())} ${pad(optinDate.getHours())}:${pad(optinDate.getMinutes())}:${pad(optinDate.getSeconds())}`;
 
     setIsSubmitting(true);
 
@@ -260,7 +261,7 @@ export default function GrowxHomeInsuranceLnForm() {
         age: payload.age,
         ip_address: payload.ip_address,
         jornaya_leadid: payload.jornaya_leadid,
-        UTCISODate,
+        original_lead_submit_date,
       });
 
       const pingResponse = await fetch(`/api/ping22?${pingParams.toString()}`);
@@ -291,7 +292,7 @@ export default function GrowxHomeInsuranceLnForm() {
         age: payload.age,
         ip_address: payload.ip_address,
         jornaya_leadid: payload.jornaya_leadid,
-        UTCISODate,
+        original_lead_submit_date,
       };
 
       const postResponse = await fetch("/api/post22", {

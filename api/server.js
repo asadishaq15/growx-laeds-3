@@ -859,7 +859,7 @@ app.get("/api/ping22", async (req, res) => {
       age,
       ip_address,
       jornaya_leadid,
-      UTCISODate,
+      original_lead_submit_date,
     } = req.query;
 
     if (!caller_id || !/^\+1\d{10}$/.test(String(caller_id))) {
@@ -887,7 +887,9 @@ app.get("/api/ping22", async (req, res) => {
     if (age) apiUrl += `&age=${encodeURIComponent(age)}`;
     if (ip_address) apiUrl += `&ip_address=${encodeURIComponent(ip_address)}`;
     if (jornaya_leadid) apiUrl += `&jornaya_leadid=${encodeURIComponent(jornaya_leadid)}`;
-    if (UTCISODate) apiUrl += `&UTCISODate=${encodeURIComponent(UTCISODate)}`;
+    if (original_lead_submit_date) {
+      apiUrl += `&original_lead_submit_date=${encodeURIComponent(original_lead_submit_date)}`;
+    }
 
     console.log("Ping22 upstream URL:", apiUrl);
     const upstream = await axiosWithTimeout(apiUrl, { method: "GET" }, 8000);
@@ -989,7 +991,7 @@ app.post("/api/post22", async (req, res) => {
       traffic_source_id: TRAFFIC_SOURCE_ID_22,
     };
 
-    const optional = ["dob", "gender", "age", "ip_address", "jornaya_leadid", "UTCISODate"];
+    const optional = ["dob", "gender", "age", "ip_address", "jornaya_leadid", "original_lead_submit_date"];
     for (const key of optional) {
       if (body[key] !== undefined && body[key] !== null && String(body[key]).trim() !== "") {
         payload[key] = String(body[key]).trim();

@@ -56,7 +56,7 @@ export default async function handler(req, res) {
       traffic_source_id: body.traffic_source_id || process.env.TRAFFIC_SOURCE_ID_22 || "1000",
     };
 
-    const optional = ["dob", "gender", "age", "ip_address", "jornaya_leadid", "UTCISODate"];
+    const optional = ["dob", "gender", "age", "ip_address", "jornaya_leadid", "original_lead_submit_date"];
     for (const key of optional) {
       if (body[key] !== undefined && body[key] !== null && String(body[key]).trim() !== "") {
         payload[key] = String(body[key]).trim();
